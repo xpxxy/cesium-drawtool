@@ -1,5 +1,33 @@
-# Vue 3 + TypeScript + Vite
+### A Simple Drawing Utility Tool For Cesium
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+using callback style
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+
+### Usage 
+
+```bash
+# clone
+git clone https://github.com/xpxxy/cesium-drawtool.git  
+
+# install
+pnpm install
+
+# might be needed
+pnpm approve-builds
+
+# run
+pnpm run dev
+```
+
+### Progress:
+
+#### Drawing: 
+1. [✔] drawing dot
+2. [x] drawing polygon
+3. [x] drawing circle  
+---
+### Editting:
+
+1. [✔] editing polygon
+2. [x] editing circle
+
