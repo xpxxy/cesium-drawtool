@@ -1,12 +1,13 @@
 import * as Cesium from "cesium"
 import {
 	Cartesian3ToWgs84,
+	distanceInMeters,
 	getDotStyle,
 	getRandomId,
 	getZoneLabelStyle,
 	getZoneStyle,
 } from "./utils"
-import type { Wgs84Coordinate, ZoneType } from "./types"
+import type { Circle, Wgs84Coordinate, ZoneType } from "./types"
 import { ElMessage } from "element-plus"
 
 export class DrawTool {
@@ -82,7 +83,7 @@ export class DrawTool {
 						false
 					)
 
-					activeShape = this.drawShape(dynamicPositions, type, drawingId)
+					activeShape = this.drawPolygonShape(dynamicPositions, type, drawingId)
 				}
 
 				if (activeShapePoints.length === 1) {
@@ -103,10 +104,8 @@ export class DrawTool {
 
 			//@ts-ignore
 			if (!textEntity.label?.show._value) {
-				//@ts-ignore
-				textEntity.label.show = true
+				textEntity.label!.show = new Cesium.ConstantProperty(true)
 			}
-
 			textEntity.position = new Cesium.CallbackPositionProperty(() => earthPosition, false)
 
 			if (activeShapePoints.length > 0) {
@@ -130,7 +129,7 @@ export class DrawTool {
 				})
 
 				//重新闭合图形
-				this.drawShape(activeShapePoints, type)
+				this.drawPolygonShape(activeShapePoints, type)
 
 				//回调结果 给业务层
 				const result = activeShapePoints.map((item) => {
@@ -203,7 +202,6 @@ export class DrawTool {
 						return
 					}
 
-
 					editPolygon = pickedEntity
 
 					//删除当前点击的实体 并创建一个临时的实体
@@ -228,7 +226,6 @@ export class DrawTool {
 						},
 					})
 
-
 					// 初始化并生成编辑点 要用拾取的那个实体 不要使用新创建的实体
 					//@ts-ignore
 					const vertexPoints = pickedEntity.polygon.hierarchy?.getValue()
@@ -237,11 +234,10 @@ export class DrawTool {
 						let dot = this.drawPoint(item, getRandomId("edit-vertex-"), true)
 						editPoints.push(dot)
 					})
-
 				}
 				//更新文字标签位置
 				if (textEntity.label) {
-					textEntity.label.text = new Cesium.ConstantProperty('左键点击拖动顶点编辑 右键结束编辑')
+					textEntity.label.text = new Cesium.ConstantProperty("左键点击拖动顶点编辑 右键结束编辑")
 				}
 			}
 		}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
@@ -297,7 +293,7 @@ export class DrawTool {
 				this.drawSource.entities.removeById(finnalId)
 
 				//最终的图形
-				const finalShape = this.drawShape(finnalPosition, type, finnalId)
+				const finalShape = this.drawPolygonShape(finnalPosition, type, finnalId)
 
 				//TODO 添加标签
 
@@ -311,11 +307,10 @@ export class DrawTool {
 
 				//更新文字标签位置
 				if (textEntity.label) {
-					textEntity.label.text = new Cesium.ConstantProperty('双击图形开始编辑')
+					textEntity.label.text = new Cesium.ConstantProperty("双击图形开始编辑")
 				}
 				//回调
 				callback(result)
-
 			}
 
 			//TODO添加标签
@@ -323,7 +318,7 @@ export class DrawTool {
 	}
 
 	//绘制 图形
-	drawShape(positionData: Cesium.Cartesian3[], type: ZoneType, id?: string) {
+	drawPolygonShape(positionData: Cesium.Cartesian3[], type: ZoneType, id?: string) {
 		const zoneStyle = getZoneStyle(type)
 		const labelStyle = getZoneLabelStyle(type)
 		const shape = this.drawSource.entities.add({
@@ -342,16 +337,252 @@ export class DrawTool {
 		return shape
 	}
 
-	stopDraw() {
-		//移除控制器
-		this.removeHandler()
-		this.drawing = false
-		//移除鼠标悬浮标签
-		this.drawSource.entities.removeById("drawingLabel")
+	drawCircle(type: ZoneType, callback: (result: Circle) => void) {
+		this.stopDraw()
+
+		const textEntity = new Cesium.Entity({
+			id: "drawingLabel",
+			position: new Cesium.Cartesian3(),
+			label: {
+				show: false,
+				text: "单击某处开始绘制画圆形",
+				font: "14px",
+				scale: 0.8,
+				showBackground: true,
+				disableDepthTestDistance: Number.POSITIVE_INFINITY,
+				pixelOffset: new Cesium.Cartesian2(0.0, 30.0),
+			},
+		})
+		this.drawSource.entities.add(textEntity)
+
+		this.initHandler()
+
+		let _center: Cesium.Cartesian3 | undefined
+		let _centerPoint: Cesium.Entity | undefined
+		let _circle: Cesium.Entity | undefined
+		let _circleRadius: number = 0
+		let drawingCenterId: string = ""
+		let drawingId: string = ""
+		const circleStyle = getZoneStyle(type)
+
+		//左键点击获取圆心并创建初始圆
+		this._handler?.setInputAction((event: Cesium.ScreenSpaceEventHandler.PositionedEvent) => {
+			if (this.drawing) {
+				ElMessage.warning("请先结束当前的绘制！")
+				return
+			}
+
+			this.drawing = true
+			const ray = this.viewer.camera.getPickRay(event.position)!
+			_center = this.viewer.scene.globe.pick(ray, this.viewer.scene)!
+
+			drawingCenterId = getRandomId("vertex-center-")
+			drawingId = getRandomId("circle-")
+
+			//创建圆心
+			_centerPoint = this.drawPoint(_center, drawingCenterId)
+
+			//先绘制默认的单位圆 后根据鼠标移动更新半径
+			_circle = this.drawCircleShape(type, _center, 1, drawingId)
+		}, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+
+		//鼠标移动更新半径大小
+		this._handler?.setInputAction((event: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
+			const ray = this.viewer.camera.getPickRay(event.endPosition)!
+			const earthPosition = this.viewer.scene.globe.pick(ray, this.viewer.scene)!
+
+			//@ts-ignore
+			if (!textEntity.label?.show._value) {
+				textEntity.label!.show = new Cesium.ConstantProperty(true)
+			}
+			textEntity.position = new Cesium.CallbackPositionProperty(() => earthPosition, false)
+
+			textEntity.label!.text = new Cesium.ConstantProperty("左键设置圆心，右键结束绘制")
+
+			//没有圆心和初始圆则不执行
+			if (!_center || !_circle) return
+
+			//转换圆形的半径为米
+			const newRadius = distanceInMeters(_center, earthPosition)
+
+			//动态更新圆半径
+			_circle.ellipse!.semiMajorAxis = new Cesium.CallbackProperty(() => newRadius, false)
+			_circle.ellipse!.semiMinorAxis = new Cesium.CallbackProperty(() => newRadius, false)
+
+			_circleRadius = newRadius
+		}, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+
+		//右键结束绘制
+		this._handler?.setInputAction(() => {
+			if (_center && this.drawing) {
+				this.drawSource.entities.removeById(drawingCenterId)
+				this.drawSource.entities.removeById(drawingId)
+				if (_circleRadius < 10) {
+					ElMessage.warning("半径过小 不得小于10m")
+					_center = undefined
+					_circle = undefined
+					_centerPoint = undefined
+					_circleRadius = 0
+
+					return
+				}
+				this.drawing = false
+				this.drawCircleShape(type, _center!, _circleRadius, drawingId)
+				const result: Circle = {
+					id: drawingId,
+					center: Cartesian3ToWgs84(_center!),
+					radius: _circleRadius,
+				}
+
+				//更新文字标签位置
+				if (textEntity.label) {
+					textEntity.label.text = new Cesium.ConstantProperty("单击某处开始绘制圆形")
+				}
+				// this._handler?.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+				callback(result)
+			}
+		}, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
+	}
+
+	editCircle(type: ZoneType, callback: (result: Circle) => void) {
+		if (this.drawing) {
+			ElMessage.warning("请先停止绘制")
+			return
+		}
+
+		this.stopDraw()
+
+		//添加鼠标悬浮标签
+		const textEntity = new Cesium.Entity({
+			id: "drawingLabel",
+			position: new Cesium.Cartesian3(),
+			label: {
+				show: false,
+				text: "双击图形开始编辑",
+				font: "14px",
+				scale: 0.8,
+				showBackground: true,
+				disableDepthTestDistance: Number.POSITIVE_INFINITY,
+				pixelOffset: new Cesium.Cartesian2(0.0, 30.0),
+			},
+		})
+		this.drawSource.entities.add(textEntity)
+
+		this.initHandler()
+
+		let editPolygon: Cesium.Entity | undefined
+		let editCenter: Cesium.Cartesian3 | undefined
+		let editRadius: number = 0
+		let editCenterPoint: Cesium.Entity | undefined
+		let editOuterDot: Cesium.Entity | undefined
+		let editingId: string = ""
+		//鼠标双击实体时 生成编辑点
+		this._handler?.setInputAction((event: Cesium.ScreenSpaceEventHandler.PositionedEvent) => {
+			const pickedObject = this.viewer.scene.pick(event.position)
+
+			//确认点击的内容是多边形
+			if (
+				Cesium.defined(pickedObject) &&
+				Cesium.defined(pickedObject.id) &&
+				pickedObject.id instanceof Cesium.Entity
+			) {
+				const pickedEntity = pickedObject.id as Cesium.Entity
+
+				if (Cesium.defined(pickedEntity.ellipse)) {
+					//防止重复生成
+					if (editPolygon?.id === pickedEntity.id) {
+						ElMessage.warning("当前图形已处于编辑模式！")
+						return
+					}
+
+					//编辑结束该项会被清空 可以用于判断是否还在编辑状态
+					if (editPolygon) {
+						ElMessage.warning("请先停止编辑")
+						return
+					}
+
+					editPolygon = pickedEntity
+
+					//删除当前点击的实体 并创建一个临时的实体
+					this.drawSource.entities.remove(pickedEntity)
+
+					//获取圆心
+					editCenter = pickedEntity!.position!.getValue()
+
+					//获取半径的值
+					editRadius = pickedEntity.ellipse!.semiMajorAxis!.getValue()
+					//创建新的圆心
+					editCenterPoint = this.drawPoint(editCenter!, getRandomId("edit-vertex-"), true)
+
+					//创建可拖拽的圆心
+
+					const rotation = pickedEntity.ellipse.rotation?.getValue() ?? 0.0
+					const centerCartographic = Cesium.Cartographic.fromCartesian(editCenter!)
+
+					//在0弧度的位置创建一个点
+					const angleRadians = Cesium.Math.toRadians(0)
+					const finalAngle = angleRadians + rotation
+
+					const deltaX = editRadius * Math.cos(finalAngle) // East 偏移
+					const deltaY = editRadius * Math.sin(finalAngle) // North 偏移
+
+					const transform = Cesium.Transforms.eastNorthUpToFixedFrame(editCenter!)
+
+					const localPoint = new Cesium.Cartesian3(deltaX, deltaY, 0)
+
+					const worldPoint = Cesium.Matrix4.multiplyByPoint(
+						transform,
+						localPoint,
+						new Cesium.Cartesian3() // 使用新的 Cartesian3 存储结果
+					)
+
+					editingId = getRandomId("edit-polygon-")
+					editPolygon = this.drawCircleShape(type, editCenter!, editRadius!, editingId)
+
+					editOuterDot = this.drawPoint(editCenter!, getRandomId("edit-vertex-"), true, editPolygon)
+
+					const zoneStyle = getZoneStyle(type)
+				}
+				//更新文字标签位置
+				if (textEntity.label) {
+					textEntity.label.text = new Cesium.ConstantProperty("左键点击拖动顶点编辑 右键结束编辑")
+				}
+			}
+		}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
+	}
+	//绘制圆形
+	drawCircleShape(type: ZoneType, center: Cesium.Cartesian3, radius: number, id?: string) {
+		const circleStyle = getZoneStyle(type)
+		const circleShape = this.drawSource.entities.add({
+			id: id || getRandomId("circle-"),
+			position: center,
+			properties: {
+				zoneType: type,
+				status: true,
+				createor: "",
+				name: "",
+			},
+			ellipse: {
+				semiMajorAxis: radius,
+				semiMinorAxis: radius,
+				heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+				material: circleStyle.backgroundColor,
+				outline: true,
+				outlineColor: circleStyle.outlineColor,
+				outlineWidth: 15,
+				show: true,
+			},
+		})
+		return circleShape
 	}
 
 	//绘制一个标准点
-	drawPoint(position: Cesium.Cartesian3, id?: string, editable: boolean = false) {
+	drawPoint(
+		position: Cesium.Cartesian3,
+		id?: string,
+		editable: boolean = false,
+		parent: Cesium.Entity | undefined = undefined
+	) {
 		const dotStyle = getDotStyle(editable)
 		const point = this.drawSource.entities.add({
 			id: id || getRandomId("vertex-"),
@@ -363,6 +594,7 @@ export class DrawTool {
 				outlineColor: dotStyle.outlineColor,
 				outlineWidth: 2,
 			},
+			parent: parent,
 		})
 		return point
 	}
@@ -395,5 +627,13 @@ export class DrawTool {
 			})
 			callback(result)
 		}, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
+	}
+
+	stopDraw() {
+		//移除控制器
+		this.removeHandler()
+		this.drawing = false
+		//移除鼠标悬浮标签
+		this.drawSource.entities.removeById("drawingLabel")
 	}
 }

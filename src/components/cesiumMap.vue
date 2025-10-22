@@ -6,7 +6,7 @@
                 <el-checkbox v-model="toolStatus" @change="handleToolActivate">激活</el-checkbox>
                 <el-checkbox v-model="editStatus" @change="handleEditActivate">编辑模式</el-checkbox>
                 <el-select class="custom-select" v-model="toolEditMode" :disabled="toolStatus !== true"
-                    placeholder="请选择编辑类型">
+                    placeholder="请选择编辑类型" @change="handleToolActivate">
                     <el-option label="自定义多边形作业区" value="polygonWorkZone"></el-option>
                     <el-option label="自定义多边形限飞区" value="polygonLimitZone"></el-option>
                     <el-option label="自定义多边形禁降区" value="polygonForbiddenZone"></el-option>
@@ -24,6 +24,7 @@
 import * as Cesium from "cesium"
 import { cesiumToken } from "../main"
 import { DrawTool } from "./mapUtility/DrawTool.ts"
+import type { Circle, Wgs84Coordinate } from "./mapUtility/types.ts"
 
 let viewer: Cesium.Viewer
 //初始坐标 使用WGS84 该坐标为
@@ -115,8 +116,8 @@ function handleToolActivate(status: any) {
     if (status) {
         switch (toolEditMode.value) {
             case 'polygonWorkZone':
-                drawTool?.drawPolygon('workZone', (res: any) => {
-                    console.log('', res);
+                drawTool?.drawPolygon('workZone', (res: Array<Wgs84Coordinate>) => {
+                    console.log('绘制的多边形数据：', res);
                 })
                 break;
             case 'polygonLimitZone':
@@ -124,6 +125,9 @@ function handleToolActivate(status: any) {
             case 'polygonForbiddenZone':
                 break;
             case 'circleWorkZone':
+                drawTool?.drawCircle('workZone', (res: Circle) => {
+                    console.log('绘制的圆：', res);
+                })
                 break;
             case 'circleLimitZone':
                 break;
@@ -141,7 +145,7 @@ function handleEditActivate(status: any) {
     if (status) {
         drawTool?.stopDraw()
         drawTool?.editPolygon('workZone', (res: any) => {
-            console.log('最后的结果', res);
+            console.log('编辑的多边形结果', res);
         })
     } else {
         drawTool?.stopDraw()
