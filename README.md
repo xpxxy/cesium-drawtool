@@ -22,12 +22,12 @@ pnpm run dev
 ### Progress:
 
 #### Drawing: 
-1. [✔] drawing dot
-2. [x] drawing polygon
-3. [x] drawing circle  
+1. ✅ drawing dot
+2. ✅ drawing polygon
+3. ❎️ drawing circle  
 ---
 ### Editting:
 
-1. [✔] editing polygon
-2. [x] editing circle
+1. ✅ editing polygon
+2. ❎️ editing circle
 
