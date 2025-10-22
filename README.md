@@ -24,7 +24,7 @@ pnpm run dev
 #### Drawing: 
 1. ✅ drawing dot
 2. ✅ drawing polygon
-3. ❎️ drawing circle  
+3. ✅ drawing circle  
 ---
 ### Editting:
 
