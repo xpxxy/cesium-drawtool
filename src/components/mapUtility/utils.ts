@@ -101,31 +101,31 @@ export function midpoint(a: Cesium.Cartesian3, b: Cesium.Cartesian3): Cesium.Car
 	return Cesium.Cartesian3.midpoint(a, b, new Cesium.Cartesian3())
 }
 
-export function addEdgeLabels(
-	viewer: Cesium.Viewer,
-	points: Cesium.Cartesian3[],
-	type: ZoneType,
-	targetPolygon: Cesium.Entity
-): Cesium.Entity[] {
-	//把label与多边形绑定
-	if (targetPolygon._edgeLables) {
-		targetPolygon._edgeLables.forEach((label: Cesium.Entity) => viewer.entities.remove(label))
-	}
-	targetPolygon._edgeLables = []
-	const labels: Cesium.Entity[] = []
-	if (points.length < 2) return labels
-	for (let i = 0; i < points.length; i++) {
-		const a = points[i]
-		const b = points[(i + 1) % points.length]
-		const d = distanceInMeters(a, b)
-		const pos = midpoint(a, b)
-		const label = createLabel(viewer, pos, `${d.toFixed(1)} m`, type)
-		labels.push(label)
-		//与多边形绑定
-		targetPolygon._edgeLables.push(label)
-	}
-	return labels
-}
+// export function addEdgeLabels(
+// 	viewer: Cesium.Viewer,
+// 	points: Cesium.Cartesian3[],
+// 	type: ZoneType,
+// 	targetPolygon: Cesium.Entity
+// ): Cesium.Entity[] {
+// 	//把label与多边形绑定
+// 	if (targetPolygon._edgeLables) {
+// 		targetPolygon._edgeLables.forEach((label: Cesium.Entity) => viewer.entities.remove(label))
+// 	}
+// 	targetPolygon._edgeLables = []
+// 	const labels: Cesium.Entity[] = []
+// 	if (points.length < 2) return labels
+// 	for (let i = 0; i < points.length; i++) {
+// 		const a = points[i]
+// 		const b = points[(i + 1) % points.length]
+// 		const d = distanceInMeters(a, b)
+// 		const pos = midpoint(a, b)
+// 		const label = createLabel(viewer, pos, `${d.toFixed(1)} m`, type)
+// 		labels.push(label)
+// 		//与多边形绑定
+// 		targetPolygon._edgeLables.push(label)
+// 	}
+// 	return labels
+// }
 
 export function getZoneStyle(type: ZoneType) {
 	switch (type) {

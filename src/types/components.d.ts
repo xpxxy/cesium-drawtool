@@ -14,8 +14,6 @@ declare module 'vue' {
     CesiumMap: typeof import('./../components/cesiumMap.vue')['default']
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElOption: typeof import('element-plus/es')['ElOption']
-    ElRadioButton: typeof import('element-plus/es')['ElRadioButton']
-    ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     HelloWorld: typeof import('./../components/HelloWorld.vue')['default']
   }
