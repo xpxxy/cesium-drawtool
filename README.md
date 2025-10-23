@@ -29,5 +29,6 @@ pnpm run dev
 ### Editting:
 
 1. ✅ editing polygon
-2. ❎️ editing circle
+2. ✅ editing circle
 
+### ReDraw:

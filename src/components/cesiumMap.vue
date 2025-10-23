@@ -55,6 +55,10 @@ async function initMap() {
         shadows: false,
         animation: false,
     })
+
+    //! debug only
+    viewer.scene.debugShowFramesPerSecond = true;
+
     drawTool = new DrawTool(viewer)
 
     //@ts-expect-error style issue but work properly
@@ -144,9 +148,32 @@ function handleToolActivate(status: any) {
 function handleEditActivate(status: any) {
     if (status) {
         drawTool?.stopDraw()
-        drawTool?.editPolygon('workZone', (res: any) => {
-            console.log('编辑的多边形结果', res);
-        })
+
+        switch (toolEditMode.value) {
+            case 'polygonWorkZone':
+                drawTool?.editPolygon('workZone', (res: any) => {
+                    console.log('编辑的多边形结果', res);
+                })
+                break;
+            case 'polygonLimitZone':
+                break;
+            case 'polygonForbiddenZone':
+                break;
+            case 'circleWorkZone':
+                drawTool?.editCircle('workZone', (res: any) => {
+                    console.log('编辑的圆结果', res);
+                    const drawSource = viewer.dataSources.getByName('drawSource')
+                    const entities = drawSource[0]?.entities.values
+
+                    console.log('实体列表', entities);
+                })
+                break;
+            case 'circleLimitZone':
+                break;
+            case 'circleForbiddenZone':
+                break;
+        }
+
     } else {
         drawTool?.stopDraw()
     }
