@@ -26,9 +26,15 @@ pnpm run dev
 2. ✅ drawing polygon
 3. ✅ drawing circle  
 ---
-### Editting:
+#### Editting:
 
 1. ✅ editing polygon
 2. ✅ editing circle
 
-### ReDraw:
+#### ReDraw:
+1. ❎️ re-draw polygon
+2. ❎️ re-draw circle
+
+#### EdgeLabel:
+1. ❎️ polygon edge label
+2. ❎️ circle edge label
