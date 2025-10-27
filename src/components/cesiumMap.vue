@@ -22,7 +22,6 @@
 
 <script lang="ts" setup>
 import * as Cesium from "cesium"
-import { cesiumToken } from "../main"
 import { DrawTool } from "./mapUtility/DrawTool.ts"
 import type { Circle, Wgs84Coordinate } from "./mapUtility/types.ts"
 import { TdtImageryProvider } from '@cesium-china/cesium-map'
@@ -37,10 +36,15 @@ const initialCoordinate = {
 
 let drawTool: DrawTool
 
-const tdtToken = ''
 let tdtUrl = 'https://t{s}.tianditu.gov.cn/';
 // 服务负载子域
 const subdomains = ['0', '1', '2', '3', '4', '5', '6', '7'];
+
+
+
+const cesiumToken = import.meta.env.VITE_CESIUM_TOKEN
+
+const tdtToken = import.meta.env.VITE_TDT_TOKEN
 
 async function initMap() {
     Cesium.Ion.defaultAccessToken = cesiumToken
