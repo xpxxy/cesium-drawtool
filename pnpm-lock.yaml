@@ -11,6 +11,9 @@ importers:
 
   .:
     dependencies:
+      '@cesium-china/cesium-map':
+        specifier: ^1.0.0
+        version: 1.0.0(cesium@1.134.1)
       cesium:
         specifier: ^1.134.1
         version: 1.134.1
@@ -30,6 +33,9 @@ importers:
         specifier: ^3.5.22
         version: 3.5.22(typescript@5.9.3)
     devDependencies:
+      '@types/cesium-china__cesium-map':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
@@ -205,6 +211,11 @@ packages:
   '@babel/types@7.28.4':
     resolution: {integrity: sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q==}
     engines: {node: '>=6.9.0'}
+
+  '@cesium-china/cesium-map@1.0.0':
+    resolution: {integrity: sha512-G4ro4MMnoNUVh9Z4KTXDE31F2d2hddju81MfRPUcs31lK10eugJVgKXmXYzbY7WyyvFmcRyVydKOvHy5jYSKGw==}
+    peerDependencies:
+      cesium: ^1.118.2
 
   '@cesium/engine@21.0.1':
     resolution: {integrity: sha512-V4MEHOcYMcg+zCxrPjPAVpUyJxmIw6K9qPz5Fd2fnYPoMSPV7FJsiZYoFns03yoPHOPIeqnXQNspZKLX5Xzgfw==}
@@ -408,6 +419,9 @@ packages:
 
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
+
+  '@types/cesium-china__cesium-map@1.0.0':
+    resolution: {integrity: sha512-hSzfGOpZmAS0iZFYgWPt6UVBcmZbilUFAYBquBcDLXxBK8/LmkdFvYHINTAviyETwi/8dhQFmm3wiIcurWWeyw==}
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
@@ -1429,6 +1443,10 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
+  '@cesium-china/cesium-map@1.0.0(cesium@1.134.1)':
+    dependencies:
+      cesium: 1.134.1
+
   '@cesium/engine@21.0.1':
     dependencies:
       '@cesium/wasm-splats': 0.1.0-alpha.2
@@ -1606,6 +1624,10 @@ snapshots:
     dependencies:
       tslib: 2.8.1
     optional: true
+
+  '@types/cesium-china__cesium-map@1.0.0':
+    dependencies:
+      cesium: 1.134.1
 
   '@types/estree@1.0.8': {}
 

@@ -25,6 +25,7 @@ import * as Cesium from "cesium"
 import { cesiumToken } from "../main"
 import { DrawTool } from "./mapUtility/DrawTool.ts"
 import type { Circle, Wgs84Coordinate } from "./mapUtility/types.ts"
+import { TdtImageryProvider } from '@cesium-china/cesium-map'
 
 let viewer: Cesium.Viewer
 //初始坐标 使用WGS84 该坐标为
@@ -36,7 +37,7 @@ const initialCoordinate = {
 
 let drawTool: DrawTool
 
-const tdtToken = '46579897618b3a3c8aaed8e078c358e1'
+const tdtToken = ''
 let tdtUrl = 'https://t{s}.tianditu.gov.cn/';
 // 服务负载子域
 const subdomains = ['0', '1', '2', '3', '4', '5', '6', '7'];
@@ -87,6 +88,23 @@ async function initMap() {
         Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
     )
 
+
+
+    //@ts-ignore
+    /**
+     *  
+     * try {
+        const options = {
+            style: 'img', //style: vec、cva、img、cia、ter 
+            key: tdtToken, // 需去相关地图厂商申请
+        } as const
+        viewer.imageryLayers.add(new Cesium.ImageryLayer(new TdtImageryProvider(options)))
+    } catch (error) {
+        console.log('加载地图出现错误', error)
+    }
+     */
+
+
     //*加载 3d-tiles 地形 服务来自 cesium 或者 来自天地图
     // try {
     //     const terrainProvider = await Cesium.CesiumTerrainProvider.fromIonAssetId(1)
@@ -94,21 +112,6 @@ async function initMap() {
     // } catch (error) {
     //     console.log('加载地形出现错误', error)
     // }
-
-    const terrainUrls = []
-
-    for (let i = 0; i < subdomains.length; i++) {
-        const url = tdtUrl.replace('{s}', subdomains[i]!) + 'mapservice/swdx?T=elv_c&tk=' + tdtToken;
-        terrainUrls.push(url);
-    }
-
-    try {
-        const provider = await Cesium.CesiumTerrainProvider.fromUrl(terrainUrls[0]!)
-        viewer.terrainProvider = provider
-
-    } catch (error) {
-        console.log('加载地形出现错误', error)
-    }
 
 
     viewer.camera.setView({
