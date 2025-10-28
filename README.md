@@ -37,4 +37,5 @@ npm run dev
 2. ❎️ circle dynamic edge label
 
 #### TerrainServer:
-1. ✅ terrain server --> check [terrain.md](./terrain.md)
+1. ✅ terrain server check [terrain.md](./terrain-en.md)   chs-doc: [地形服务demo文档](./terrain-chs.md)
+2. ❎️ terrain optimization
