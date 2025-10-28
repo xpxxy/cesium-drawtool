@@ -40,14 +40,27 @@ let tdtUrl = 'https://t{s}.tianditu.gov.cn/';
 // 服务负载子域
 const subdomains = ['0', '1', '2', '3', '4', '5', '6', '7'];
 
+const cesiumToken = ref('');
+
+const tdtToken = ref('');
 
 
-const cesiumToken = import.meta.env.VITE_CESIUM_TOKEN
+try {
+    cesiumToken.value = import.meta.env.VITE_CESIUM_TOKEN
+    if (!cesiumToken.value)
+        throw new Error('Please configure cesium access token on .env file | 请在.env文件中配置cesium访问Token')
 
-const tdtToken = import.meta.env.VITE_TDT_TOKEN
+} catch (error) {
+    console.error(error)
+}
+tdtToken.value = import.meta.env.VITE_TDT_TOKEN
+if (!tdtToken.value) {
+    console.warn('Optional: Please configure tdt access token on .env file | (可选)请在.env文件中配置天地图访问Token')
+}
+
 
 async function initMap() {
-    Cesium.Ion.defaultAccessToken = cesiumToken
+    Cesium.Ion.defaultAccessToken = cesiumToken.value
     viewer = new Cesium.Viewer("mapContainer", {
         shouldAnimate: true, //动画
         selectionIndicator: false,
@@ -92,30 +105,33 @@ async function initMap() {
         Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
     )
 
+    //移除默认图层
+    // viewer.imageryLayers.get(0).show = false;
 
 
-    //@ts-ignore
-    /**
-     *  
-     * try {
-        const options = {
-            style: 'img', //style: vec、cva、img、cia、ter 
-            key: tdtToken, // 需去相关地图厂商申请
-        } as const
-        viewer.imageryLayers.add(new Cesium.ImageryLayer(new TdtImageryProvider(options)))
-    } catch (error) {
-        console.log('加载地图出现错误', error)
-    }
-     */
-
-
-    //*加载 3d-tiles 地形 服务来自 cesium 或者 来自天地图
+    // *加载 图片图层 服务可选 | load image layer service
     // try {
-    //     const terrainProvider = await Cesium.CesiumTerrainProvider.fromIonAssetId(1)
-    //     viewer.terrainProvider = terrainProvider
+    //     const options = {
+    //         style: 'img', //style: vec、cva、img、cia、ter 
+    //         key: tdtToken.value, // 需去相关地图厂商申请
+    //     } as const
+    //     viewer.imageryLayers.add(new Cesium.ImageryLayer(new TdtImageryProvider(options)))
     // } catch (error) {
-    //     console.log('加载地形出现错误', error)
+    //     console.log('加载地图出现错误', error)
     // }
+
+
+    // *加载 3d-tiles 地形 服务来自 cesium 或者 来自天地图
+    try {
+        const gisUrl = import.meta.env.VITE_GIS_SERVER
+        if (!gisUrl) {
+            throw new Error('Please configure terrain GIS_SERVER environment variable on .env file | 请在.env文件中配置地形服务地址')
+        }
+        const terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(gisUrl)
+        viewer.terrainProvider = terrainProvider
+    } catch (error) {
+        console.error('加载地形出现错误', error)
+    }
 
 
     viewer.camera.setView({
