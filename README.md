@@ -1,8 +1,8 @@
-### A Simple Drawing Utility Demo Tool For Cesium in Vue3
+### A Demo For Cesium Running in Vue3
 
-using callback style
+A Personal Learning Project
 
-
+---
 ### Usage 
 
 ```bash
@@ -10,17 +10,14 @@ using callback style
 git clone https://github.com/xpxxy/cesium-drawtool.git  
 
 # install
-pnpm install
-
-# might be needed
-pnpm approve-builds
+npm install
 
 # run
-pnpm run dev
+npm run dev
 ```
+---
 
-### Progress:
-
+### Cesium Features:
 #### Drawing: 
 1. ✅ drawing dot
 2. ✅ drawing polygon
@@ -35,6 +32,10 @@ pnpm run dev
 1. ❎️ re-draw polygon
 2. ❎️ re-draw circle
 
-#### EdgeLabel:
-1. ❎️ polygon edge label
-2. ❎️ circle edge label
+#### PolygonEdgeLabel:
+1. ❎️ polygon dynamic edge label
+2. ❎️ circle dynamic edge label
+
+#### TerrainServer:
+1. ✅ terrain server check [terrain.md](./terrain-en.md)   chs-doc: [地形服务demo文档](./terrain-chs.md)
+2. ❎️ terrain optimization

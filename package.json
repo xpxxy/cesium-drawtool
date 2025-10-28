@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cesium-china/cesium-map": "^1.0.0",
     "cesium": "^1.134.1",
     "element-plus": "^2.11.5",
     "lodash-es": "^4.17.21",
@@ -17,6 +18,7 @@
     "vue": "^3.5.22"
   },
   "devDependencies": {
+    "@types/cesium-china__cesium-map": "^1.0.0",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.6.0",
     "@vitejs/plugin-vue": "^6.0.1",
@@ -25,17 +27,9 @@
     "unplugin-auto-import": "^20.2.0",
     "unplugin-vue-components": "^30.0.0",
     "vite": "npm:rolldown-vite@7.1.14",
+    "vite-plugin-inspect": "^11.3.3",
     "vite-plugin-static-copy": "^3.1.4",
     "vite-plugin-vue-devtools": "^8.0.3",
     "vue-tsc": "^3.1.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "vite": "npm:rolldown-vite@7.1.14"
-    },
-    "onlyBuiltDependencies": [
-      "protobufjs",
-      "vue-demi"
-    ]
   }
 }

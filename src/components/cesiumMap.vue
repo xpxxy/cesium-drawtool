@@ -22,9 +22,9 @@
 
 <script lang="ts" setup>
 import * as Cesium from "cesium"
-import { cesiumToken } from "../main"
 import { DrawTool } from "./mapUtility/DrawTool.ts"
 import type { Circle, Wgs84Coordinate } from "./mapUtility/types.ts"
+import { TdtImageryProvider } from '@cesium-china/cesium-map'
 
 let viewer: Cesium.Viewer
 //初始坐标 使用WGS84 该坐标为
@@ -36,13 +36,31 @@ const initialCoordinate = {
 
 let drawTool: DrawTool
 
-const tdtToken = '46579897618b3a3c8aaed8e078c358e1'
 let tdtUrl = 'https://t{s}.tianditu.gov.cn/';
 // 服务负载子域
 const subdomains = ['0', '1', '2', '3', '4', '5', '6', '7'];
 
+const cesiumToken = ref('');
+
+const tdtToken = ref('');
+
+
+try {
+    cesiumToken.value = import.meta.env.VITE_CESIUM_TOKEN
+    if (!cesiumToken.value)
+        throw new Error('Please configure cesium access token on .env file | 请在.env文件中配置cesium访问Token')
+
+} catch (error) {
+    console.error(error)
+}
+tdtToken.value = import.meta.env.VITE_TDT_TOKEN
+if (!tdtToken.value) {
+    console.warn('Optional: Please configure tdt access token on .env file | (可选)请在.env文件中配置天地图访问Token')
+}
+
+
 async function initMap() {
-    Cesium.Ion.defaultAccessToken = cesiumToken
+    Cesium.Ion.defaultAccessToken = cesiumToken.value
     viewer = new Cesium.Viewer("mapContainer", {
         shouldAnimate: true, //动画
         selectionIndicator: false,
@@ -87,27 +105,32 @@ async function initMap() {
         Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
     )
 
-    //*加载 3d-tiles 地形 服务来自 cesium 或者 来自天地图
+    //移除默认图层
+    // viewer.imageryLayers.get(0).show = false;
+
+
+    // *加载 图片图层 服务可选 | load image layer service
     // try {
-    //     const terrainProvider = await Cesium.CesiumTerrainProvider.fromIonAssetId(1)
-    //     viewer.terrainProvider = terrainProvider
+    //     const options = {
+    //         style: 'img', //style: vec、cva、img、cia、ter 
+    //         key: tdtToken.value, // 需去相关地图厂商申请
+    //     } as const
+    //     viewer.imageryLayers.add(new Cesium.ImageryLayer(new TdtImageryProvider(options)))
     // } catch (error) {
-    //     console.log('加载地形出现错误', error)
+    //     console.log('加载地图出现错误', error)
     // }
 
-    const terrainUrls = []
 
-    for (let i = 0; i < subdomains.length; i++) {
-        const url = tdtUrl.replace('{s}', subdomains[i]!) + 'mapservice/swdx?T=elv_c&tk=' + tdtToken;
-        terrainUrls.push(url);
-    }
-
+    // *加载 3d-tiles 地形 服务来自 cesium 或者 来自天地图
     try {
-        const provider = await Cesium.CesiumTerrainProvider.fromUrl(terrainUrls[0]!)
-        viewer.terrainProvider = provider
-
+        const gisUrl = import.meta.env.VITE_GIS_SERVER
+        if (!gisUrl) {
+            throw new Error('Please configure terrain GIS_SERVER environment variable on .env file | 请在.env文件中配置地形服务地址')
+        }
+        const terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(gisUrl)
+        viewer.terrainProvider = terrainProvider
     } catch (error) {
-        console.log('加载地形出现错误', error)
+        console.error('加载地形出现错误', error)
     }
 
 
